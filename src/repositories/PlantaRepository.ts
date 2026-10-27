@@ -31,3 +31,14 @@ export const deletePlanta = async (id: number) => {
         where: { id: id }
     });
 };
+
+export const venderPlanta = async (id: number, quantidade: number) => {
+    return await prisma.planta.update({
+        where: { id: id },
+        data: {
+            estoque: {
+                decrement: quantidade
+            }
+        }
+    });
+};
