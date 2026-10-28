@@ -1,0 +1,1636 @@
+# CITi - testes manuais com a extensao REST Client do VS Code.
+# Execute UMA requisicao por vez, de cima para baixo, ate o fim da secao 7.
+# Primeiro inicie a API e aplique as migrations conforme o README.
+# As variaveis *.response.body.$.id exigem executar o cadastro nomeado antes.
+# Ao repetir a suite, reexecute os cadastros: seus IDs anteriores foram removidos.
+# Confira status, corpo e persistencia; estes comentarios nao sao assercoes automaticas.
+# Erros 400/404 devem conter { "message": "mensagem clara" }; 500 nao e esperado.
+# Nao execute os testes de concorrencia como parte da sequencia principal.
+@baseUrl = http://localhost:3001
+
+# ======================================================================
+# 1. CADASTRO
+# ======================================================================
+
+### Cadastro completo - 201
+# @name criarPlanta
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Estoque zero, false e minimos validos - 201
+# @name criarEsgotada
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Espada - teste HTTP",
+  "especie": "Dracaena trifasciata",
+  "preco": 1,
+  "estoque": 0,
+  "luminosidade": "SOL_PLENO",
+  "petFriendly": false,
+  "regaACadaDias": 1
+}
+
+
+### Violeta para filtros SOMBRA - 201
+# @name criarVioleta
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Violeta - teste HTTP",
+  "especie": "Saintpaulia ionantha",
+  "preco": 2500,
+  "estoque": 8,
+  "luminosidade": "SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: nome - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: especie - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: preco - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: estoque - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: luminosidade - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: petFriendly - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "regaACadaDias": 3
+}
+
+
+### Campo obrigatorio ausente: regaACadaDias - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true
+}
+
+
+### Cadastro nome = "" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro nome = "   " - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "   ",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro nome = 123 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": 123,
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro nome = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": null,
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro especie = "" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro especie = 123 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": 123,
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro especie = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": null,
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = 0 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 0,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = -1 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": -1,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = 1.5 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 1.5,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = "4000" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": "4000",
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": null,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = 2147483648 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 2147483648,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro preco = 9007199254740992 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 9007199254740992,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro estoque = -1 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": -1,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro estoque = 1.5 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 1.5,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro estoque = "10" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": "10",
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro estoque = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": null,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro estoque = 2147483648 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 2147483648,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro regaACadaDias = 0 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 0
+}
+
+
+### Cadastro regaACadaDias = -1 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": -1
+}
+
+
+### Cadastro regaACadaDias = 1.5 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 1.5
+}
+
+
+### Cadastro regaACadaDias = "3" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": "3"
+}
+
+
+### Cadastro regaACadaDias = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": null
+}
+
+
+### Cadastro regaACadaDias = 2147483648 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 2147483648
+}
+
+
+### Cadastro luminosidade = "LUA" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "LUA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro luminosidade = "sombra" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "sombra",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro luminosidade = 123 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": 123,
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro luminosidade = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": null,
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro petFriendly = "false" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": "false",
+  "regaACadaDias": 3
+}
+
+
+### Cadastro petFriendly = 0 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": 0,
+  "regaACadaDias": 3
+}
+
+
+### Cadastro petFriendly = null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Samambaia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 10,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": null,
+  "regaACadaDias": 3
+}
+
+
+### Corpo invalido no cadastro: null - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+null
+
+
+### Corpo invalido no cadastro: [] - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+[]
+
+
+### Corpo invalido no cadastro: [{}] - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+[{}]
+
+
+### Corpo invalido no cadastro: "texto" - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+"texto"
+
+
+### Corpo invalido no cadastro: 42 - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+42
+
+
+### Corpo invalido no cadastro: true - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+true
+
+
+### Corpo invalido no cadastro: {"nome": "Samambaia",} - 400
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{"nome": "Samambaia",}
+
+
+# ======================================================================
+# 2. LISTAGEM E FILTROS
+# ======================================================================
+
+
+### Listagem geral - 200, array incluindo os tres cadastros
+GET {{baseUrl}}/plantas
+
+
+### Filtro luminosidade=SOMBRA - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?luminosidade=SOMBRA
+
+
+### Filtro luminosidade=MEIA_SOMBRA - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?luminosidade=MEIA_SOMBRA
+
+
+### Filtro luminosidade=SOL_PLENO - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?luminosidade=SOL_PLENO
+
+
+### Filtro petFriendly=true - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?petFriendly=true
+
+
+### Filtro petFriendly=false - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?petFriendly=false
+
+
+### Filtro luminosidade=SOMBRA&petFriendly=true - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?luminosidade=SOMBRA&petFriendly=true
+
+
+### Filtro luminosidade=SOL_PLENO&petFriendly=false - 200; todos os resultados devem respeita-lo
+GET {{baseUrl}}/plantas?luminosidade=SOL_PLENO&petFriendly=false
+
+
+### Filtro invalido luminosidade=LUA - 400
+GET {{baseUrl}}/plantas?luminosidade=LUA
+
+
+### Filtro invalido luminosidade=sombra - 400
+GET {{baseUrl}}/plantas?luminosidade=sombra
+
+
+### Filtro invalido luminosidade= - 400
+GET {{baseUrl}}/plantas?luminosidade=
+
+
+### Filtro invalido petFriendly=banana - 400
+GET {{baseUrl}}/plantas?petFriendly=banana
+
+
+### Filtro invalido petFriendly=0 - 400
+GET {{baseUrl}}/plantas?petFriendly=0
+
+
+### Filtro invalido petFriendly= - 400
+GET {{baseUrl}}/plantas?petFriendly=
+
+
+### Filtro invalido petFriendly=null - 400
+GET {{baseUrl}}/plantas?petFriendly=null
+
+
+### Filtro invalido petFriendly=true&petFriendly=false - 400
+GET {{baseUrl}}/plantas?petFriendly=true&petFriendly=false
+
+
+### Filtro invalido luminosidade=SOMBRA&luminosidade=SOL_PLENO - 400
+GET {{baseUrl}}/plantas?luminosidade=SOMBRA&luminosidade=SOL_PLENO
+
+
+### Filtro invalido luminosidade=SOMBRA&petFriendly=banana - 400
+GET {{baseUrl}}/plantas?luminosidade=SOMBRA&petFriendly=banana
+
+
+# ======================================================================
+# 3. BUSCA POR ID
+# ======================================================================
+
+
+### Buscar cadastro principal - 200; estoque 10, preco 4000
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### ID invalido abc - 400
+GET {{baseUrl}}/plantas/abc
+
+
+### ID invalido 0 - 400
+GET {{baseUrl}}/plantas/0
+
+
+### ID invalido -1 - 400
+GET {{baseUrl}}/plantas/-1
+
+
+### ID invalido 1.5 - 400
+GET {{baseUrl}}/plantas/1.5
+
+
+### ID invalido 2147483648 - 400
+GET {{baseUrl}}/plantas/2147483648
+
+
+### ID invalido 9007199254740992 - 400
+GET {{baseUrl}}/plantas/9007199254740992
+
+
+# IDs inexistentes sao testados apos a exclusao controlada, na secao 7.
+
+
+# ======================================================================
+# 4. EDICAO PARCIAL
+# ======================================================================
+
+
+### Alterar somente preco - 200; demais campos preservados
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 5500
+}
+
+
+### Confirmar preco 5500 e estoque ainda 10 - 200
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### PATCH vazio - 200; nenhum campo de negocio muda
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{}
+
+
+### Alterar somente petFriendly para false - 200
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "petFriendly": false
+}
+
+
+### Estoque zero e limites minimos - 200
+PATCH {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": 0,
+  "preco": 1,
+  "regaACadaDias": 1
+}
+
+
+### Limite superior PostgreSQL, um campo por vez no registro esgotado - 200
+PATCH {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 2147483647,
+  "regaACadaDias": 2147483647
+}
+
+
+### Restaurar preco e rega antes dos totais - 200
+PATCH {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 1,
+  "regaACadaDias": 1
+}
+
+
+### Limite superior de estoque - 200
+PATCH {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": 2147483647
+}
+
+
+### Restaurar estoque zero antes das vendas e totais - 200
+PATCH {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": 0
+}
+
+
+### PATCH nome = "" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nome": ""
+}
+
+
+### PATCH nome = "   " - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nome": "   "
+}
+
+
+### PATCH nome = 123 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nome": 123
+}
+
+
+### PATCH nome = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nome": null
+}
+
+
+### PATCH especie = "" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "especie": ""
+}
+
+
+### PATCH especie = 123 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "especie": 123
+}
+
+
+### PATCH especie = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "especie": null
+}
+
+
+### PATCH preco = 0 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 0
+}
+
+
+### PATCH preco = -1 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": -1
+}
+
+
+### PATCH preco = 1.5 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 1.5
+}
+
+
+### PATCH preco = "4000" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": "4000"
+}
+
+
+### PATCH preco = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": null
+}
+
+
+### PATCH preco = 2147483648 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 2147483648
+}
+
+
+### PATCH preco = 9007199254740992 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 9007199254740992
+}
+
+
+### PATCH estoque = -1 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": -1
+}
+
+
+### PATCH estoque = 1.5 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": 1.5
+}
+
+
+### PATCH estoque = "10" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": "10"
+}
+
+
+### PATCH estoque = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": null
+}
+
+
+### PATCH estoque = 2147483648 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "estoque": 2147483648
+}
+
+
+### PATCH regaACadaDias = 0 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": 0
+}
+
+
+### PATCH regaACadaDias = -1 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": -1
+}
+
+
+### PATCH regaACadaDias = 1.5 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": 1.5
+}
+
+
+### PATCH regaACadaDias = "3" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": "3"
+}
+
+
+### PATCH regaACadaDias = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": null
+}
+
+
+### PATCH regaACadaDias = 2147483648 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "regaACadaDias": 2147483648
+}
+
+
+### PATCH luminosidade = "LUA" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "luminosidade": "LUA"
+}
+
+
+### PATCH luminosidade = "sombra" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "luminosidade": "sombra"
+}
+
+
+### PATCH luminosidade = 123 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "luminosidade": 123
+}
+
+
+### PATCH luminosidade = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "luminosidade": null
+}
+
+
+### PATCH petFriendly = "false" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "petFriendly": "false"
+}
+
+
+### PATCH petFriendly = 0 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "petFriendly": 0
+}
+
+
+### PATCH petFriendly = null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "petFriendly": null
+}
+
+
+### Corpo invalido no PATCH: null - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+null
+
+
+### Corpo invalido no PATCH: [] - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+[]
+
+
+### Corpo invalido no PATCH: [{}] - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+[{}]
+
+
+### Corpo invalido no PATCH: "texto" - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+"texto"
+
+
+### Corpo invalido no PATCH: 42 - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+42
+
+
+### Corpo invalido no PATCH: true - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+true
+
+
+### Corpo invalido no PATCH: {"preco": 100,} - 400
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{"preco": 100,}
+
+
+### PATCH ID invalido abc - 400
+PATCH {{baseUrl}}/plantas/abc
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### PATCH ID invalido 0 - 400
+PATCH {{baseUrl}}/plantas/0
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### PATCH ID invalido -1 - 400
+PATCH {{baseUrl}}/plantas/-1
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### PATCH ID invalido 1.5 - 400
+PATCH {{baseUrl}}/plantas/1.5
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### PATCH ID invalido 2147483648 - 400
+PATCH {{baseUrl}}/plantas/2147483648
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### Erros anteriores nao alteraram os dados - 200; preco 5500, estoque 10, petFriendly false
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+# ======================================================================
+# 5. VENDAS
+# ======================================================================
+
+
+### Venda maior que estoque 10 - 400; nao deve alterar nada
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 11
+}
+
+
+### Confirmar estoque ainda 10 - 200
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### Quantidade invalida 0 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 0
+}
+
+
+### Quantidade invalida -2 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": -2
+}
+
+
+### Quantidade invalida 1.5 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1.5
+}
+
+
+### Quantidade invalida "2" - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": "2"
+}
+
+
+### Quantidade invalida null - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": null
+}
+
+
+### Quantidade invalida 2147483648 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 2147483648
+}
+
+
+### Quantidade invalida 9007199254740992 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 9007199254740992
+}
+
+
+### Quantidade obrigatoria ausente - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{}
+
+
+### Corpo invalido na venda: null - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+null
+
+
+### Corpo invalido na venda: [] - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+[]
+
+
+### Corpo invalido na venda: [{}] - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+[{}]
+
+
+### Corpo invalido na venda: "texto" - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+"texto"
+
+
+### Corpo invalido na venda: 42 - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+42
+
+
+### Corpo invalido na venda: true - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+true
+
+
+### Corpo invalido na venda: {"quantidade": 2,} - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{"quantidade": 2,}
+
+
+### Venda ID invalido abc - 400
+POST {{baseUrl}}/plantas/abc/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Venda ID invalido 0 - 400
+POST {{baseUrl}}/plantas/0/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Venda ID invalido -1 - 400
+POST {{baseUrl}}/plantas/-1/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Venda ID invalido 1.5 - 400
+POST {{baseUrl}}/plantas/1.5/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Venda ID invalido 2147483648 - 400
+POST {{baseUrl}}/plantas/2147483648/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Quantidade maxima valida, mas estoque insuficiente - 400
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 2147483647
+}
+
+
+### Vender 2 vasos - 200; estoque final 8
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 2
+}
+
+
+### Confirmar venda persistida - 200; estoque 8
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### Vender todo o estoque restante - 200; estoque final 0
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 8
+}
+
+
+### Venda de planta esgotada - 400; estoque continua 0
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Confirmar estoque zero apos rejeicao - 200
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+# ======================================================================
+# 6. CALCULO DO ESTOQUE
+# ======================================================================
+
+
+### Listar dados para conferir manualmente os totais - 200
+# @name listarParaTotal
+GET {{baseUrl}}/plantas
+
+
+### Total - 200; valorTotalEmCentavos e totalDeVasos
+# Some preco * estoque e estoque de TODAS as plantas da listagem anterior. Sem alteracoes externas entre as consultas. Os cadastros desta suite contribuem 20000 centavos e 8 vasos; outros registros tambem contam.
+GET {{baseUrl}}/plantas/estoque/valor-total
+
+
+# ======================================================================
+# 7. EXCLUSAO E REGISTROS INEXISTENTES
+# ======================================================================
+
+
+### DELETE ID invalido abc - 400
+DELETE {{baseUrl}}/plantas/abc
+
+
+### DELETE ID invalido 0 - 400
+DELETE {{baseUrl}}/plantas/0
+
+
+### DELETE ID invalido -1 - 400
+DELETE {{baseUrl}}/plantas/-1
+
+
+### DELETE ID invalido 1.5 - 400
+DELETE {{baseUrl}}/plantas/1.5
+
+
+### DELETE ID invalido 2147483648 - 400
+DELETE {{baseUrl}}/plantas/2147483648
+
+
+### Excluir planta principal somente apos todos os seus testes - 204, corpo vazio
+DELETE {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### Buscar ID removido - 404
+GET {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### Editar ID removido com corpo valido - 404
+PATCH {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "preco": 5000
+}
+
+
+### Vender ID removido com quantidade valida - 404
+POST {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Excluir novamente ID removido - 404
+DELETE {{baseUrl}}/plantas/{{criarPlanta.response.body.$.id}}
+
+
+### Limpar planta esgotada - 204
+DELETE {{baseUrl}}/plantas/{{criarEsgotada.response.body.$.id}}
+
+
+### Limpar violeta - 204
+DELETE {{baseUrl}}/plantas/{{criarVioleta.response.body.$.id}}
+
+
+### Total apos limpeza - 200; reflete somente registros anteriores a suite
+GET {{baseUrl}}/plantas/estoque/valor-total
+
+
+# ======================================================================
+# 8. CONCORRENCIA - OPCIONAL, EXECUCAO MANUAL SEPARADA
+# ======================================================================
+
+
+# Requisicoes sequenciais NAO comprovam seguranca de vendas simultaneas.
+# Execute o cadastro abaixo; depois envie A e B ao mesmo tempo por dois clientes
+# ou um disparador paralelo, usando exatamente o ID desse cadastro.
+# Esperado: uma venda 200 e outra 400, nunca duas 200; estoque final 0.
+# Nao reenvie o cadastro entre A e B. Para repetir, crie outra planta.
+# Para testar exclusao concorrente: em uma nova rodada, dispare PATCH ou venda
+# junto com DELETE. Conforme a ordem, a operacao pode concluir antes da exclusao
+# (200) ou encontrar registro ausente (404); nao deve gerar 500 ou 200 com null.
+# O DELETE bem-sucedido retorna 204. Esse cenario exige orquestracao externa.
+
+
+### Preparar ultimo vaso para concorrencia - 201
+# @name criarConcorrencia
+POST {{baseUrl}}/plantas
+Content-Type: application/json
+
+{
+  "nome": "Concorrencia - teste HTTP",
+  "especie": "Nephrolepis exaltata",
+  "preco": 4000,
+  "estoque": 1,
+  "luminosidade": "MEIA_SOMBRA",
+  "petFriendly": true,
+  "regaACadaDias": 3
+}
+
+
+### Venda concorrente A - 200 ou 400 conforme disputa
+POST {{baseUrl}}/plantas/{{criarConcorrencia.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Venda concorrente B - 200 ou 400 conforme disputa
+POST {{baseUrl}}/plantas/{{criarConcorrencia.response.body.$.id}}/venda
+Content-Type: application/json
+
+{
+  "quantidade": 1
+}
+
+
+### Conferir apos ambas as vendas - 200; estoque 0
+GET {{baseUrl}}/plantas/{{criarConcorrencia.response.body.$.id}}
+
+
+### Limpar registro de concorrencia depois da conferencia - 204
+DELETE {{baseUrl}}/plantas/{{criarConcorrencia.response.body.$.id}}
+
