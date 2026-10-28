@@ -294,14 +294,47 @@ export const venderPlanta = async (req: Request, res: Response) => {
             });
         }
 
-        const plantaAtualizada = await PlantaRepository.venderPlanta(id, quantidade);
+        const vendasRealizadas = await PlantaRepository.venderPlanta(id, quantidade);
 
-        return res.status(200).json(plantaAtualizada);
+        if (vendasRealizadas === 0) {
+            return res.status(400).json({
+                message: "Estoque insuficiente para realizar a venda."
+            });
+        }
+
+        const plantaAtualizada = await PlantaRepository.findPlantaById(id);
+
+return res.status(200).json(plantaAtualizada);
 
     } catch (error) {
         console.error(error);
         return res.status(500).json({
             message: "Erro ao vender planta."
+        });
+    }
+};
+
+export const valorTotalEstoque = async (req: Request, res: Response) => {
+    try {
+        const plantas = await PlantaRepository.buscarDadosEstoque();
+
+        let valorTotalEmCentavos = 0;
+        let totalDeVasos = 0;
+
+        for (const planta of plantas) {
+        valorTotalEmCentavos += planta.preco * planta.estoque;
+        totalDeVasos += planta.estoque;
+        }
+
+        return res.status(200).json({
+        valorTotalEmCentavos: valorTotalEmCentavos,
+        totalDeVasos: totalDeVasos
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Erro ao calcular valor do estoque."
         });
     }
 };
