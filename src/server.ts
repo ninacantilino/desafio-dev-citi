@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import routes from "./routes";
 
 const app = express();
@@ -11,6 +11,17 @@ app.use(routes);
 app.use((req, res) => {
   res.status(404).json({ message: "Rota não encontrada" });
 });
+
+const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+  if (error instanceof SyntaxError && "type" in error && error.type === "entity.parse.failed") {
+    res.status(400).json({ message: "JSON inválido. Verifique a sintaxe do corpo da requisição." });
+    return;
+  }
+  console.error(error);
+  res.status(500).json({ message: "Erro interno do servidor." });
+};
+
+app.use(errorHandler);
 
 const port = process.env.SERVER_PORT || 3001;
 

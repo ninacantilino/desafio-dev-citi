@@ -33,17 +33,17 @@ export const deletePlanta = async (id: number) => {
 };
 
 export const venderPlanta = async (id: number, quantidade: number) => {
-    const resultado = await prisma.planta.updateMany({
-        where: {
-            id: id,
-            estoque: { gte: quantidade }
-        },
-        data: {
-            estoque: { decrement: quantidade }
-        }
+    return prisma.$transaction(async transaction => {
+        // A atualização condicional bloqueia a linha até o fim da transação.
+        const resultado = await transaction.planta.updateMany({
+            where: { id, estoque: { gte: quantidade } },
+            data: { estoque: { decrement: quantidade } }
+        });
+        const planta = await transaction.planta.findUnique({ where: { id } });
+        if (!planta) return { status: "not_found" as const };
+        if (resultado.count === 0) return { status: "insufficient_stock" as const };
+        return { status: "sold" as const, planta };
     });
-
-    return resultado.count;
 };
 
 export const buscarDadosEstoque = async () => {

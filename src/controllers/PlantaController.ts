@@ -1,68 +1,18 @@
 import { Request, Response } from "express";
-import { Luminosidade } from "@prisma/client";
+import { Luminosidade, Prisma } from "@prisma/client";
 import * as PlantaRepository from "@repositories/PlantaRepository";
+import { isBodyObject, isPostgresInteger, validatePlanta } from "../validators/planta";
+
+const registroInexistente = (error: unknown) =>
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025";
 
 export const createPlanta = async (req: Request, res: Response) => {
     try {
-        const {
-            nome,
-            especie,
-            preco,
-            estoque,
-            luminosidade,
-            petFriendly,
-            regaACadaDias
-        } = req.body;
-
-        
-    if (
-        typeof nome !== "string" || nome.trim() === "" ||
-        typeof especie !== "string" || especie.trim() === ""
-    ) {
-        return res.status(400).json({
-            message: "Nome e espécie devem ser textos não vazios."
-        });
-    }
-
-    if (!Number.isInteger(preco) || preco <= 0) {
-        return res.status(400).json({
-            message: "Preço deve ser um inteiro maior que zero."
-        });
-    }
-
-    if (!Number.isInteger(estoque) || estoque < 0) {
-        return res.status(400).json({
-            message: "Estoque deve ser um inteiro não negativo."
-        });
-    }
-
-    if (!Number.isInteger(regaACadaDias) || regaACadaDias < 1) {
-        return res.status(400).json({
-            message: "Intervalo de rega deve ser um inteiro de pelo menos 1 dia."
-        });
-    }
-
-    if (typeof petFriendly !== "boolean") {
-        return res.status(400).json({
-            message: "petFriendly deve ser booleano."
-        });
-    }
-
-    if (!Object.values(Luminosidade).includes(luminosidade)) {
-        return res.status(400).json({
-            message: "Luminosidade inválida."
-        });
-    }
-
-    const planta = await PlantaRepository.createPlanta({
-        nome: nome,
-        especie: especie,
-        preco: preco,
-        estoque: estoque,
-        luminosidade: luminosidade,
-        petFriendly: petFriendly,
-        regaACadaDias: regaACadaDias
-    });
+        const resultado = validatePlanta(req.body, false);
+        if (!resultado.success) {
+            return res.status(400).json({ message: resultado.message });
+        }
+        const planta = await PlantaRepository.createPlanta(resultado.data as Prisma.PlantaCreateInput);
 
     // 201 Created: algo novo foi criado
     return res.status(201).json(planta);
@@ -109,7 +59,7 @@ export const readPlantaById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
 
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!isPostgresInteger(id, 1)) {
             return res.status(400).json({
                 message: "ID inválido."
             });
@@ -136,95 +86,20 @@ export const readPlantaById = async (req: Request, res: Response) => {
 export const updatePlanta = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const { nome, especie, preco, estoque, luminosidade, petFriendly, regaACadaDias } = req.body;
-
-    // Antes de editar, garantimos que a planta existe
-    // Verificar se o ID é válido
-    if (!Number.isInteger(id) || id <= 0) {
-        return res.status(400).json({
-            message: "ID inválido."
-        });
+    if (!isPostgresInteger(id, 1)) {
+        return res.status(400).json({ message: "ID deve ser um inteiro entre 1 e 2147483647." });
     }
-
-    // Buscar a planta
-    const planta = await PlantaRepository.findPlantaById(id);
-
-    // Verificar se ela existe
-    if (!planta) {
-        return res.status(404).json({
-            message: "Planta não encontrada."
-        });
+    const resultado = validatePlanta(req.body, true);
+    if (!resultado.success) {
+        return res.status(400).json({ message: resultado.message });
     }
-
-        // Validar nome
-    if (nome !== undefined &&
-        (typeof nome !== "string" || nome.trim() === "")) {
-        return res.status(400).json({
-            message: "Nome inválido."
-        });
-    }
-
-    // Validar espécie
-    if (especie !== undefined &&
-        (typeof especie !== "string" || especie.trim() === "")) {
-        return res.status(400).json({
-            message: "Espécie inválida."
-        });
-    }
-
-    // Validar preço
-    if (preco !== undefined &&
-        (!Number.isInteger(preco) || preco <= 0)) {
-        return res.status(400).json({
-            message: "Preço inválido."
-        });
-    }
-
-    // Validar estoque
-    if (estoque !== undefined &&
-        (!Number.isInteger(estoque) || estoque < 0)) {
-        return res.status(400).json({
-            message: "Estoque inválido."
-        });
-    }
-
-    // Validar intervalo de rega
-    if (regaACadaDias !== undefined &&
-        (!Number.isInteger(regaACadaDias) || regaACadaDias < 1)) {
-        return res.status(400).json({
-            message: "Intervalo de rega inválido."
-        });
-    }
-
-    // Validar petFriendly
-    if (petFriendly !== undefined &&
-        typeof petFriendly !== "boolean") {
-        return res.status(400).json({
-            message: "petFriendly inválido."
-        });
-    }
-
-    // Validar luminosidade
-    if (luminosidade !== undefined &&
-        !Object.values(Luminosidade).includes(luminosidade)) {
-        return res.status(400).json({
-            message: "Luminosidade inválida."
-        });
-    }
-
-    // PATCH = atualização parcial: campos não enviados (undefined) não são alterados
-    const updatedPlanta = await PlantaRepository.updatePlanta(id, {
-        nome: nome,
-        especie: especie,
-        preco: preco,
-        estoque: estoque,
-        luminosidade: luminosidade,
-        petFriendly: petFriendly,
-        regaACadaDias: regaACadaDias
-    });
+    const updatedPlanta = await PlantaRepository.updatePlanta(id, resultado.data);
 
     return res.status(200).json(updatedPlanta);
   } catch (error) {
+        if (registroInexistente(error)) {
+            return res.status(404).json({ message: "Planta não encontrada." });
+        }
     console.error(error);
     return res.status(500).json({ message: "Erro ao atualizar planta." });
   }
@@ -235,18 +110,9 @@ export const deletePlanta = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
 
         // Validar o ID
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!isPostgresInteger(id, 1)) {
             return res.status(400).json({
                 message: "ID inválido."
-            });
-        }
-
-        // Verificar se a planta existe
-        const planta = await PlantaRepository.findPlantaById(id);
-
-        if (!planta) {
-            return res.status(404).json({
-                message: "Planta não encontrada."
             });
         }
 
@@ -256,6 +122,9 @@ export const deletePlanta = async (req: Request, res: Response) => {
         return res.status(204).send();
 
     } catch (error) {
+        if (registroInexistente(error)) {
+            return res.status(404).json({ message: "Planta não encontrada." });
+        }
         console.error(error);
         return res.status(500).json({
             message: "Erro ao deletar planta."
@@ -266,45 +135,31 @@ export const deletePlanta = async (req: Request, res: Response) => {
 export const venderPlanta = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
+        if (!isBodyObject(req.body)) {
+            return res.status(400).json({ message: "O corpo deve ser um objeto JSON." });
+        }
         const { quantidade } = req.body;
 
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!isPostgresInteger(id, 1)) {
             return res.status(400).json({
                 message: "ID inválido."
             });
         }
 
-        if (!Number.isInteger(quantidade) || quantidade <= 0) {
+        if (!isPostgresInteger(quantidade, 1)) {
             return res.status(400).json({
-                message: "Quantidade deve ser um inteiro maior que zero."
+                message: "Quantidade deve ser um inteiro entre 1 e 2147483647."
             });
         }
 
-        const planta = await PlantaRepository.findPlantaById(id);
-
-        if (!planta) {
-            return res.status(404).json({
-                message: "Planta não encontrada."
-            });
+        const resultado = await PlantaRepository.venderPlanta(id, quantidade);
+        if (resultado.status === "not_found") {
+            return res.status(404).json({ message: "Planta não encontrada." });
         }
-
-        if (planta.estoque < quantidade) {
-            return res.status(400).json({
-                message: `Estoque insuficiente. Temos apenas ${planta.estoque} vasos.`
-            });
+        if (resultado.status === "insufficient_stock") {
+            return res.status(400).json({ message: "Estoque insuficiente para realizar a venda." });
         }
-
-        const vendasRealizadas = await PlantaRepository.venderPlanta(id, quantidade);
-
-        if (vendasRealizadas === 0) {
-            return res.status(400).json({
-                message: "Estoque insuficiente para realizar a venda."
-            });
-        }
-
-        const plantaAtualizada = await PlantaRepository.findPlantaById(id);
-
-return res.status(200).json(plantaAtualizada);
+        return res.status(200).json(resultado.planta);
 
     } catch (error) {
         console.error(error);
